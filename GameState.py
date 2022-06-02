@@ -4,7 +4,13 @@
 #### BOARD
 
 
-from pickle import TRUE
+
+
+
+
+from tokenize import endpats
+from tracemalloc import start
+from turtle import undo
 
 
 BOARD = [
@@ -24,12 +30,22 @@ BOARD = [
 
 #### GENERATE MOVES + CASTLE MOVE + EN PASSANT 
 
-DIRECTIONS = {
-    'N': -10,
-    'S': 10,
-    'E': 1,
-    'W': -1 
-    }
+MATERIALVALUE = {
+    'K': -1_000_000,
+    'Q': -921,
+    'R': -502,
+    'B': -315,
+    'N': -301,
+    'P': -100,
+    'k': 1_000_000,
+    'q': 921,
+    'r': 502,
+    'n': 315,
+    'n': 301,
+    'p': 100,
+}
+
+
 
 
 blackPieceLocations = {
@@ -239,6 +255,50 @@ def genMoves(color):
 
 
 
+
+
+
+#### make move and undo move functions need to manage the material count so that the material difference only updates after a capture, and gets reset after a undo.
+
+materialDifference = 0
+
+def makeMove(startPos, endPos):
+    enemyLocations = pieceLocations[True]
+    ourLocations = pieceLocations[False]
+    if BOARD[startPos].lower() == BOARD[startPos]: # white
+        enemyLocations = pieceLocations[False]
+        ourLocations = pieceLocations[True]
+    if BOARD[endPos].upper() in blackPieces: #capture
+        enemyLocations[BOARD[endPos].upper()].remove(endPos)
+        global materialDifference
+        materialDifference -= MATERIALVALUE[BOARD[endPos]]
+    ourLocations[BOARD[startPos].upper()].remove(startPos)
+    ourLocations[BOARD[startPos].upper()].append(endPos)
+    
+    
+    piece = BOARD[startPos]
+    BOARD[startPos] = '.'
+    BOARD[endPos] = piece
+    
+    
+    
+
+def undoMove(startPos, endPos, startPiece, endPiece):
+    enemyLocations = pieceLocations[True]
+    ourLocations = pieceLocations[False]
+    
+    BOARD[startPos] = startPiece
+    BOARD[endPos] = endPiece
+    if startPiece == startPiece.lower(): #white
+        enemyLocations = pieceLocations[False]
+        ourLocations = pieceLocations[True]
+    if endPiece.upper() in blackPieces: # we made a capture or promotion
+        global materialDifference
+        materialDifference += MATERIALVALUE[endPiece]
+        enemyLocations[endPiece.upper()].append(endPos)
+   
+    ourLocations[startPiece.upper()].remove(endPos)
+    ourLocations[startPiece.upper()].append(startPos)
 
 
 
